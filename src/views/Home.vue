@@ -24,6 +24,17 @@
         click
       </button>
     </div>
+    <div class="px-3 py-2 rounded shadow-xl bg-gray-500">
+      <select class="w-full">
+        <option
+          v-for="item in sampleDevice"
+          :key="item.deviceId"
+          :value="item.deviceId"
+        >
+          {{ item.label }}
+        </option>
+      </select>
+    </div>
     <div>
       <video ref="video"></video>
       <img ref="imgRef" src="" />
@@ -61,6 +72,7 @@ export default {
     const selectedDevice = ref("");
     const oResult = ref("");
     const noCameraRef = ref(true);
+    const sampleDevice = ref([]);
 
     const codeReader = new BrowserQRCodeReader();
 
@@ -69,6 +81,12 @@ export default {
       deviceObject.value = videoData;
       if (videoData.length > 0) {
         selectedDevice.value = videoData[0].deviceId;
+      }
+    });
+
+    codeReader.listVideoInputDevices().then((videoDevice) => {
+      if (videoDevice.length !== 0) {
+        sampleDevice.value = [...videoDevice];
       }
     });
 
@@ -209,6 +227,7 @@ export default {
       callFile,
       callReader,
       noCameraRef,
+      sampleDevice,
     };
   },
 };
