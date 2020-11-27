@@ -55,7 +55,7 @@ export default {
         videoElement,
         (result, err) => {
           if (result) {
-            oResult.value = result;
+            oResult.value = result.text;
           }
 
           if (err) {
