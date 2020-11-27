@@ -18,7 +18,7 @@
       </select>
       <button
         v-else
-        @click="callVideo"
+        @click="callFile"
         class="px-3 py-2 w-full rounded-lg bg-blue-300 hover:bg-blue-500"
       >
         click
@@ -34,7 +34,7 @@
     <div class="hidden">
       <input
         ref="fileRef"
-        @change="callFile"
+        @change="callReader"
         type="file"
         accept="image/*;capture=camera"
       />
@@ -109,11 +109,11 @@ export default {
         });
     };
 
-    const callVideo = () => {
+    const callFile = () => {
       fileRef.value.click();
     };
 
-    const callFile = (event) => {
+    const callReader = (event) => {
       const files = event.target.files;
       if (files.length === 0) {
         return;
@@ -202,11 +202,12 @@ export default {
     return {
       video,
       imgRef,
+      fileRef,
       deviceObject,
       selectedDevice,
       oResult,
-      callVideo,
       callFile,
+      callReader,
       noCameraRef,
     };
   },
