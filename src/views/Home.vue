@@ -4,7 +4,7 @@
   >
     <div class="px-3 py-2 rounded shadow-xl bg-gray-500">
       <select
-        v-if="deviceObject.length > 0"
+        v-if="deviceObject.length > 0 && noCameraRef"
         v-model="selectedDevice"
         class="w-full"
       >
@@ -60,6 +60,7 @@ export default {
     const deviceObject = ref([]);
     const selectedDevice = ref("");
     const oResult = ref("");
+    const noCameraRef = ref(true);
 
     const codeReader = new BrowserQRCodeReader();
 
@@ -72,33 +73,40 @@ export default {
     });
 
     const decodeCamera = (codeReader, deviceId, videoElement) => {
-      codeReader.decodeFromInputVideoDeviceContinuously(
-        deviceId,
-        videoElement,
-        (result, err) => {
-          if (result) {
-            oResult.value = result.text;
+      codeReader
+        .decodeFromInputVideoDeviceContinuously(
+          deviceId,
+          videoElement,
+          (result, err) => {
+            if (result) {
+              oResult.value = result.text;
+            }
+
+            if (err) {
+              if (err instanceof NotFoundException) {
+                oResult.value = "No QR code found.";
+              }
+
+              if (err instanceof ChecksumException) {
+                console.log(
+                  (oResult.value =
+                    "A code was found, but it's read value was not valid.")
+                );
+              }
+
+              if (err instanceof FormatException) {
+                oResult.value =
+                  "A code was found, but it was in a invalid format.";
+              }
+            }
           }
-
-          if (err) {
-            if (err instanceof NotFoundException) {
-              oResult.value = "No QR code found.";
-            }
-
-            if (err instanceof ChecksumException) {
-              console.log(
-                (oResult.value =
-                  "A code was found, but it's read value was not valid.")
-              );
-            }
-
-            if (err instanceof FormatException) {
-              oResult.value =
-                "A code was found, but it was in a invalid format.";
-            }
+        )
+        .catch((err) => {
+          console.error(err);
+          if (err && err.name === "NotAllowedError") {
+            noCameraRef.value = false;
           }
-        }
-      );
+        });
     };
 
     const callVideo = () => {
@@ -117,14 +125,16 @@ export default {
           .then(
             (img) =>
               new Promise((resolve, reject) => {
-                if (!img & (img !== "")) {
+                if (typeof img !== "undefined" && img !== "") {
                   imgRef.value.src = img;
                   resolve(imgRef.value);
+                } else {
+                  reject("image error");
                 }
-                reject("image error");
               })
           )
           .then((element) => {
+            console.log(element);
             return codeReader.decodeFromImage(element);
           })
           .then((result) => {
@@ -186,7 +196,6 @@ export default {
     });
 
     onMounted(() => {
-      console.log(deviceObject.value);
       decodeCamera(codeReader, selectedDevice.value, video.value);
     });
 
@@ -198,6 +207,7 @@ export default {
       oResult,
       callVideo,
       callFile,
+      noCameraRef,
     };
   },
 };
